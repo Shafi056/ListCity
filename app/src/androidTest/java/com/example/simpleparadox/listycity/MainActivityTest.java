@@ -1,12 +1,16 @@
 package com.example.simpleparadox.listycity;
 
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import android.app.Activity;
+import android.widget.EditText;
+import android.widget.ListView;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
-import android.widget.EditText;
-import android.widget.ListView;
 
 import com.robotium.solo.Solo;
 
@@ -16,14 +20,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 /**
  * Test class for MainActivity. All the UI tests are written here. Robotium test framework is used
  */
 @RunWith(AndroidJUnit4.class)
-public class MainActivityTest{
+public class MainActivityTest {
 
     private Solo solo;
 
@@ -65,7 +66,7 @@ public class MainActivityTest{
 
         /* True if there is any text: Edmonton on the screen, wait at least 2 seconds and
         find minimum one match. */
-        assertTrue(solo.waitForText("Edmonton", 1, 2000));
+        assertTrue(solo.waitForText("Edmonton", 1, 10000));
 
         solo.clickOnButton("ClEAR ALL"); //Select ClEAR ALL
         //True if there is no text: Edmonton on the screen
@@ -83,7 +84,7 @@ public class MainActivityTest{
         solo.clickOnButton("ADD CITY");
         solo.enterText((EditText) solo.getView(R.id.editText_name), "Edmonton");
         solo.clickOnButton("CONFIRM");
-        solo.waitForText("Edmonton", 1, 2000);
+        solo.waitForText("Edmonton", 1, 5000);
         // Get MainActivity to access its variables and methods.
         MainActivity activity = (MainActivity) solo.getCurrentActivity();
         final ListView cityList = activity.cityList; // Get the listview
@@ -98,5 +99,35 @@ public class MainActivityTest{
     @After
     public void tearDown() throws Exception{
         solo.finishOpenedActivities();
+    }
+    /**
+     * Check for new activity
+     */
+    @Test
+    public void newActivityTest(){
+        solo.assertCurrentActivity("Wrong Activity", MainActivity.class);
+
+        solo.clickOnButton("ADD CITY"); //Click ADD CITY Button
+
+        //Get view for EditText and enter a city name
+        solo.enterText((EditText) solo.getView(R.id.editText_name), "Dhaka");
+        solo.clickOnButton("CONFIRM"); //Select CONFIRM Button
+        solo.clearEditText((EditText) solo.getView(R.id.editText_name)); //Clear the EditText
+
+        /* True if there is any text: Edmonton on the screen, wait at least 2 seconds and
+        find minimum one match. */
+        assertTrue(solo.waitForText("Dhaka", 1, 10000));
+        //Click on the list item
+        solo.clickLongInList(1);
+        //Check the second view
+        solo.assertCurrentActivity("Wrong Activity", ShowActivity.class);
+        // Checking the text
+        solo.waitForText("Dhaka", 1, 10000);
+        //Going back to main activity
+        solo.clickOnButton("Back");
+        //Checking if back worked
+        assertTrue(solo.waitForText("ADD CITY", 1, 10000));
+        solo.assertCurrentActivity("Wrong Activity", MainActivity.class);
+
     }
 }
